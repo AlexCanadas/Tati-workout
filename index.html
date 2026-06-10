@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cutting Phase Tati</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #e91e8c;
+            --primary-light: #f062b5;
+            --primary-dark: #c2187a;
+            --bg: #fff0f5;
+            --card: #ffffff;
+            --text: #4a0e2e;
+            --text-light: #8a4a6a;
+            --border: #f8bbd0;
+            --success: #4caf50;
+            --success-light: #e8f5e9;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding-bottom: 100px;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(233,30,140,0.3);
+        }
+        .header h1 { font-size: 1.6rem; font-weight: 700; }
+        .header p { font-size: 0.85rem; opacity: 0.9; margin-top: 4px; }
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 10px;
+            background: var(--card);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            background: white;
+            color: var(--primary);
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover, .tab-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(233,30,140,0.3);
+        }
+        .tab-content { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        .tab-content.active { display: block; }
+        .day-card {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+        }
+        .day-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .day-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        .exercise {
+            background: #fff8fb;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #fce4ec;
+        }
+        .exercise-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .exercise-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text);
+            flex: 1;
+        }
+        .video-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .video-btn:hover { background: var(--primary-dark); transform: scale(1.05); }
+        .exercise-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .meta-tag {
+            background: #fce4ec;
+            color: var(--primary-dark);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .exercise-note {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            background: #fff0f5;
+            padding: 10px 12px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+            border-left: 3px solid var(--primary-light);
+        }
+        .sets-container { display: flex; flex-direction: column; gap: 8px; }
+        .set-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #f8bbd0;
+        }
+        .set-label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.85rem;
+            min-width: 50px;
+        }
+        .set-input {
+            width: 70px;
+            padding: 8px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            text-align: center;
+            color: var(--text);
+        }
+        .set-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .set-check {
+            width: 22px;
+            height: 22px;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+        .set-check:checked + .set-label,
+        .set-check:checked ~ .set-input { opacity: 0.6; }
+        .completed .set-input {
+            background: var(--success-light);
+            border-color: var(--success);
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .completed .set-label { color: var(--success); }
+        .add-set-btn, .add-exercise-btn, .remove-exercise-btn {
+            background: transparent;
+            border: 2px dashed var(--border);
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.2s;
+        }
+        .add-set-btn:hover, .add-exercise-btn:hover {
+            border-color: var(--primary);
+            background: #fff0f5;
+        }
+        .remove-exercise-btn {
+            border-color: #ffcdd2;
+            color: #c62828;
+            margin-top: 8px;
+        }
+        .remove-exercise-btn:hover {
+            background: #ffebee;
+            border-color: #ef5350;
+        }
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 15px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 200;
+        }
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .progress-bar-bg {
+            flex: 1;
+            height: 10px;
+            background: #fce4ec;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-light), var(--primary));
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+        .progress-text {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 45px;
+            text-align: right;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-complete, .btn-reset, .btn-export {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-complete {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+        .btn-complete:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(233,30,140,0.4); }
+        .btn-reset {
+            background: #fff3e0;
+            color: #e65100;
+        }
+        .btn-reset:hover { background: #ffe0b2; }
+        .btn-export {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+        .btn-export:hover { background: #bbdefb; }
+        .summary-chart-container {
+            background: var(--card);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+        }
+        .summary-chart-container h2 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .video-modal.active { display: flex; }
+        .video-modal-content {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            max-width: 500px;
+            width: 100%;
+            position: relative;
+        }
+        .video-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .video-iframe {
+            width: 100%;
+            aspect-ratio: 9/16;
+            border: none;
+        }
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 2000;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(233,30,140,0.4);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .edit-mode .add-set-btn,
+        .edit-mode .add-exercise-btn,
+        .edit-mode .remove-exercise-btn { display: block; }
+        .add-set-btn, .add-exercise-btn, .remove-exercise-btn { display: none; }
+        .edit-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 300;
+            background: white;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .edit-toggle.active {
+            background: var(--primary);
+            color: white;
+        }
+        .edit-toggle:hover { transform: scale(1.05); }
+        @media (max-width: 480px) {
+            .header h1 { font-size: 1.3rem; }
+            .tab-btn { padding: 6px 12px; font-size: 0.8rem; }
+            .set-row { flex-wrap: wrap; }
+            .set-input { width: 60px; padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💪 Cutting Phase Tati</h1>
+        <p>Rutina de definición - 3 días por semana</p>
+    </div>
+
+    <button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">✏️ Editar</button>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('dia1')">Día 1</button>
+        <button class="tab-btn" onclick="showTab('dia2')">Día 2</button>
+        <button class="tab-btn" onclick="showTab('dia3')">Día 3</button>
+        <button class="tab-btn" onclick="showTab('resumen')">Resumen</button>
+    </div>
+
+    <!-- DÍA 1 -->
+    <div id="dia1" class="tab-content active">
+        <div class="day-card">
+            <div class="day-title">Día 1 - Lower Body</div>
+            <div id="exercises-dia1"></div>
+            <button class="add-exercise-btn" onclick="addExercise('dia1')">+ Añadir Ejercicio</button>
+        </div>
+    </div>
+
+    <!-- DÍA 2 -->
+    <div id="dia2" class="tab-content">
+        <div class="day-card">
+            <div class="day-title">Día 2 - Upper Body</div>
+            <div id="exercises-dia2"></div>
+            <button class="add-exercise-btn" onclick="addExercise('dia2')">+ Añadir Ejercicio</button>
+        </div>
+    </div>
+
+    <!-- DÍA 3 -->
+    <div id="dia3" class="tab-content">
+        <div class="day-card">
+            <div class="day-title">Día 3 - Full Body</div>
+            <div id="exercises-dia3"></div>
+            <button class="add-exercise-btn" onclick="addExercise('dia3')">+ Añadir Ejercicio</button>
+        </div>
+    </div>
+
+    <!-- RESUMEN -->
+    <div id="resumen" class="tab-content">
+        <div class="summary-chart-container">
+            <h2>📊 Series por Grupo Muscular</h2>
+            <canvas id="summaryChart"></canvas>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+            <span class="progress-text" id="progressText">0%</span>
+        </div>
+        <div class="action-buttons">
+            <button class="btn-reset" onclick="resetDay()">↺ Reset</button>
+            <button class="btn-export" onclick="exportData()">📊 Exportar</button>
+            <button class="btn-complete" onclick="completeDay()">✅ Completar Día</button>
+        </div>
+    </div>
+
+    <!-- VIDEO MODAL -->
+    <div class="video-modal" id="videoModal" onclick="closeVideo(event)">
+        <div class="video-modal-content">
+            <button class="video-modal-close" onclick="closeVideoDirect()">×</button>
+            <iframe class="video-iframe" id="videoFrame" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const exercisesData = {
+            dia1: [
+                {
+                    name: "Hack Squat",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3011",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/g9i05umL5vc",
+                    note: "Coloca los pies a la altura de los hombros en la plataforma. Baja controlando hasta que los muslos estén paralelos al suelo. Empuja con los talones, sin levantarlos. Mantén la espalda pegada al respaldo en todo momento."
+                },
+                {
+                    name: "Goblet Squat",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3011",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/lRYBbchqxtI",
+                    note: "Sujeta la mancuerna o kettlebell cerca del pecho con ambas manos. Separa los pies a la anchura de los hombros. Baja en cuclillas manteniendo el torso erguido. Los codos deben quedar dentro de las rodillas al bajar."
+                },
+                {
+                    name: "Lying Leg Curl",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/FRy58-v0YII",
+                    note: "Acuéstate boca abajo con los tobillos bien ajustados en los rodillos. Flexiona las rodillas llevando los talones hacia los glúteos. Baja controlando sin dejar caer el peso. Evita levantar las caderas del banco."
+                },
+                {
+                    name: "Single-Leg Seated Leg Curl",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/watch?v=82IuSLk5zNc",
+                    note: "Siéntate con la espalda bien apoyada. Trabaja una pierna a la vez. Flexiona la rodilla llevando el talón hacia abajo. Mantén la cadera estable sin balancearte. Alterna piernas o haz todas las series con una antes de cambiar."
+                },
+                {
+                    name: "Hip Thrust",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/42lU8xsumBo",
+                    note: "Apoya la parte superior de la espalda en un banco. Coloca la barra o mancuerna sobre las caderas. Empuja hacia arriba contrayendo fuerte los glúteos hasta que el cuerpo forme una línea recta. Baja controlando sin tocar el suelo."
+                }
+            ],
+            dia2: [
+                {
+                    name: "Incline Chest Press Machine",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3011",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/WxrKIPbeQP8",
+                    note: "Ajusta el respaldo en posición inclinada (30-45°). Sujeta los mangos con las palmas hacia abajo. Empuja hacia arriba extendiendo los brazos sin bloquear los codos. Baja controlando hasta que los codos formen un ángulo de 90°."
+                },
+                {
+                    name: "Lat Pulldown",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/bNmvKpJSWKM",
+                    note: "Siéntate con los muslos bien sujetos bajo las almohadillas. Agarra la barra con las palmas hacia fuera, un poco más anchas que los hombros. Tira hacia abajo llevando la barra hasta la parte superior del pecho. Controla al subir sin dejar caer el peso."
+                },
+                {
+                    name: "Shoulder Press Machine",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/PM1hB_2xNBU",
+                    note: "Ajusta el asiento para que los mangos queden a la altura de los hombros. Siéntate con la espalda bien apoyada. Empuja hacia arriba extendiendo los brazos. Baja controlando hasta la posición inicial sin dejar caer el peso."
+                },
+                {
+                    name: "Curl Biceps Bayesian",
+                    sets: [
+                        { reps: "10-15", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3010",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/J_-lkeKmHB8",
+                    note: "Colócate de espaldas a la polea baja, agarrando la cuerda o barra con las palmas hacia arriba. Mantén los codos ligeramente por detrás del cuerpo. Flexiona los brazos llevando las manos hacia los hombros. Siente la tensión constante en el bíceps."
+                },
+                {
+                    name: "Lateral Raise",
+                    sets: [
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/lMJUXEvcMkQ",
+                    note: "De pie, sujeta una mancuerna en cada mano. Eleva los brazos hacia los lados hasta la altura de los hombros, con un ligero codo flexionado. Baja controlando sin dejar caer el peso. Evita balancear el cuerpo para levantar más peso."
+                }
+            ],
+            dia3: [
+                {
+                    name: "Romanian Deadlift Dumbells",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/hu3jRvTc_po",
+                    note: "De pie con las mancuernas delante de los muslos. Mantén las rodillas ligeramente flexionadas y la espalda recta. Baja las mancuernas deslizándolas por las piernas, empujando las caderas hacia atrás. Siente el estiramiento en los isquiotibiales. Vuelve arriba contrayendo glúteos e isquios."
+                },
+                {
+                    name: "Pec deck",
+                    sets: [
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "12-15", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/a9vQ_hwIksU",
+                    note: "Ajusta el asiento para que los codos queden a la altura de los hombros. Coloca los antebrazos en las almohadillas. Junta los brazos delante del pecho contrayendo fuerte los pectorales. Abre controlando sin dejar caer el peso."
+                },
+                {
+                    name: "Seated Single Arm Cable Row",
+                    sets: [
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "10-12", weight: "", done: false },
+                        { reps: "12-15", weight: "", done: false }
+                    ],
+                    tempo: "3011",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/kt7iBID_FPA",
+                    note: "Siéntate frente a la polea baja con las piernas ligeramente flexionadas. Agarra el mango con una mano. Tira hacia atrás llevando el codo cerca del cuerpo, contrayendo el dorsal. Controla al volver a la posición inicial. Haz todas las series con un brazo antes de cambiar."
+                },
+                {
+                    name: "Hip Thrust",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/42lU8xsumBo",
+                    note: "Apoya la parte superior de la espalda en un banco. Coloca la barra o mancuerna sobre las caderas. Empuja hacia arriba contrayendo fuerte los glúteos hasta que el cuerpo forme una línea recta. Baja controlando sin tocar el suelo."
+                },
+                {
+                    name: "Triceps Rope Pushdown",
+                    sets: [
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "4-6", weight: "", done: false },
+                        { reps: "10-15", weight: "", done: false }
+                    ],
+                    tempo: "3110",
+                    rir: "1RIR TOT FAILURE",
+                    rest: "AS NEEDED",
+                    video: "https://www.youtube.com/shorts/u36jNfqh8_U",
+                    note: "De pie frente a la polea alta, agarra la cuerda con las palmas hacia abajo. Mantén los codos pegados al cuerpo. Empuja hacia abajo extendiendo los brazos, separando las manos al final del movimiento. Controla al subir sin dejar caer el peso."
+                }
+            ]
+        };
+
+        let currentTab = 'dia1';
+        let editMode = false;
+        let summaryChart = null;
+
+        function init() {
+            loadData();
+            renderAll();
+            updateProgress();
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('tatiCuttingData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(day => {
+                    if (exercisesData[day]) {
+                        exercisesData[day] = data[day];
+                    }
+                });
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('tatiCuttingData', JSON.stringify(exercisesData));
+        }
+
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            if (tab === 'resumen') renderSummary();
+            updateProgress();
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            document.body.classList.toggle('edit-mode', editMode);
+            document.getElementById('editToggle').classList.toggle('active', editMode);
+            document.getElementById('editToggle').textContent = editMode ? '✅ Listo' : '✏️ Editar';
+            renderAll();
+        }
+
+        function renderAll() {
+            renderDay('dia1');
+            renderDay('dia2');
+            renderDay('dia3');
+        }
+
+        function renderDay(day) {
+            const container = document.getElementById('exercises-' + day);
+            container.innerHTML = '';
+            exercisesData[day].forEach((ex, exIndex) => {
+                const exDiv = document.createElement('div');
+                exDiv.className = 'exercise';
+                exDiv.innerHTML = `
+                    <div class="exercise-header">
+                        <div class="exercise-name">${ex.name}</div>
+                        <button class="video-btn" onclick="openVideo('${ex.video}')">▶ Ver Video</button>
+                    </div>
+                    <div class="exercise-meta">
+                        <span class="meta-tag">Tempo: ${ex.tempo}</span>
+                        <span class="meta-tag">RIR: ${ex.rir}</span>
+                        <span class="meta-tag">Rest: ${ex.rest}</span>
+                    </div>
+                    <div class="exercise-note">${ex.note}</div>
+                    <div class="sets-container" id="sets-${day}-${exIndex}"></div>
+                    <button class="add-set-btn" onclick="addSet('${day}', ${exIndex})">+ Añadir Set</button>
+                    <button class="remove-exercise-btn" onclick="removeExercise('${day}', ${exIndex})">🗑️ Eliminar Ejercicio</button>
+                `;
+                container.appendChild(exDiv);
+                renderSets(day, exIndex);
+            });
+        }
+
+        function renderSets(day, exIndex) {
+            const container = document.getElementById(`sets-${day}-${exIndex}`);
+            if (!container) return;
+            container.innerHTML = '';
+            const ex = exercisesData[day][exIndex];
+            ex.sets.forEach((set, setIndex) => {
+                const setDiv = document.createElement('div');
+                setDiv.className = 'set-row' + (set.done ? ' completed' : '');
+                setDiv.innerHTML = `
+                    <input type="checkbox" class="set-check" ${set.done ? 'checked' : ''} onchange="toggleSet('${day}', ${exIndex}, ${setIndex})">
+                    <span class="set-label">Set ${setIndex + 1}</span>
+                    <input type="text" class="set-input" placeholder="Peso" value="${set.weight}" onchange="updateWeight('${day}', ${exIndex}, ${setIndex}, this.value)">
+                    <input type="text" class="set-input" placeholder="Reps" value="${set.reps}" onchange="updateReps('${day}', ${exIndex}, ${setIndex}, this.value)">
+                `;
+                container.appendChild(setDiv);
+            });
+        }
+
+        function toggleSet(day, exIndex, setIndex) {
+            exercisesData[day][exIndex].sets[setIndex].done = !exercisesData[day][exIndex].sets[setIndex].done;
+            saveData();
+            renderSets(day, exIndex);
+            updateProgress();
+        }
+
+        function updateWeight(day, exIndex, setIndex, value) {
+            exercisesData[day][exIndex].sets[setIndex].weight = value;
+            saveData();
+        }
+
+        function updateReps(day, exIndex, setIndex, value) {
+            exercisesData[day][exIndex].sets[setIndex].reps = value;
+            saveData();
+        }
+
+        function addSet(day, exIndex) {
+            exercisesData[day][exIndex].sets.push({ reps: "", weight: "", done: false });
+            saveData();
+            renderSets(day, exIndex);
+        }
+
+        function addExercise(day) {
+            const name = prompt("Nombre del ejercicio:");
+            if (!name) return;
+            exercisesData[day].push({
+                name: name,
+                sets: [{ reps: "", weight: "", done: false }],
+                tempo: "3010",
+                rir: "1RIR",
+                rest: "AS NEEDED",
+                video: "",
+                note: ""
+            });
+            saveData();
+            renderDay(day);
+        }
+
+        function removeExercise(day, exIndex) {
+            if (confirm("¿Eliminar este ejercicio?")) {
+                exercisesData[day].splice(exIndex, 1);
+                saveData();
+                renderDay(day);
+                updateProgress();
+            }
+        }
+
+        function updateProgress() {
+            let totalSets = 0;
+            let completedSets = 0;
+            Object.keys(exercisesData).forEach(day => {
+                exercisesData[day].forEach(ex => {
+                    ex.sets.forEach(set => {
+                        totalSets++;
+                        if (set.done) completedSets++;
+                    });
+                });
+            });
+            const pct = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = pct + '%';
+        }
+
+        function resetDay() {
+            if (!confirm("¿Desmarcar todos los sets del día actual?")) return;
+            Object.keys(exercisesData).forEach(day => {
+                exercisesData[day].forEach(ex => {
+                    ex.sets.forEach(set => set.done = false);
+                });
+            });
+            saveData();
+            renderAll();
+            updateProgress();
+            showToast("✅ Sets desmarcados");
+        }
+
+        function completeDay() {
+            Object.keys(exercisesData).forEach(day => {
+                exercisesData[day].forEach(ex => {
+                    ex.sets.forEach(set => set.done = true);
+                });
+            });
+            saveData();
+            renderAll();
+            updateProgress();
+            showToast("🎉 ¡Día completado!");
+        }
+
+        function exportData() {
+            let csv = "Día,Ejercicio,Set,Peso,Reps,Completado\n";
+            Object.keys(exercisesData).forEach(day => {
+                exercisesData[day].forEach(ex => {
+                    ex.sets.forEach((set, i) => {
+                        csv += `${day},${ex.name},${i+1},${set.weight},${set.reps},${set.done ? 'Sí' : 'No'}\n`;
+                    });
+                });
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'tati-cutting-phase.csv';
+            a.click();
+            showToast("📊 Datos exportados");
+        }
+
+        function openVideo(url) {
+            const modal = document.getElementById('videoModal');
+            const frame = document.getElementById('videoFrame');
+            let embedUrl = url;
+            if (url.includes('shorts/')) {
+                const id = url.split('shorts/')[1].split('?')[0];
+                embedUrl = `https://www.youtube.com/embed/${id}`;
+            } else if (url.includes('watch?v=')) {
+                const id = url.split('v=')[1].split('&')[0];
+                embedUrl = `https://www.youtube.com/embed/${id}`;
+            }
+            frame.src = embedUrl;
+            modal.classList.add('active');
+        }
+
+        function closeVideo(e) {
+            if (e.target === e.currentTarget) closeVideoDirect();
+        }
+
+        function closeVideoDirect() {
+            document.getElementById('videoModal').classList.remove('active');
+            document.getElementById('videoFrame').src = '';
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2500);
+        }
+
+        function renderSummary() {
+            const ctx = document.getElementById('summaryChart');
+            if (summaryChart) summaryChart.destroy();
+            summaryChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Glúteos', 'Cuádriceps', 'Isquios', 'Espalda', 'Pecho', 'Hombros', 'Bíceps', 'Tríceps'],
+                    datasets: [{
+                        label: 'Series',
+                        data: [8, 9, 6, 6, 6, 6, 3, 3],
+                        backgroundColor: [
+                            '#e91e8c', '#f062b5', '#f48fb1', '#f8bbd0',
+                            '#e91e8c', '#f062b5', '#f48fb1', '#f8bbd0'
+                        ],
+                        borderRadius: 10,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#e91e8c',
+                            titleFont: { family: 'Poppins', size: 14 },
+                            bodyFont: { family: 'Poppins', size: 13 }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: '#fce4ec' },
+                            ticks: { font: { family: 'Poppins' }, color: '#8a4a6a' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { font: { family: 'Poppins', size: 13, weight: '600' }, color: '#4a0e2e' }
+                        }
+                    }
+                }
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
